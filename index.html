@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Success 9 Glossary Game (Full 4 Images)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ed6c02; /* Cam chủ đạo của sách */
+            --secondary: #2e7d32; /* Xanh lá */
+            --bg: #fff3e0;
+            --text: #37474f;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; color: var(--text); }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, var(--primary), #ff9800);
+            color: white; padding: 15px; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        h1 { margin: 0; font-size: 22px; font-weight: 800; }
+        p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+
+        /* CONTROLS */
+        .controls {
+            padding: 15px; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
+            position: sticky; top: 0; z-index: 100; text-align: center; border-bottom: 2px solid #eee;
+        }
+        select {
+            padding: 10px 20px; font-size: 16px; border-radius: 25px; border: 2px solid var(--primary);
+            font-weight: bold; width: 100%; max-width: 400px; color: var(--text); outline: none;
+        }
+
+        /* TABS */
+        .tabs { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .tab-btn {
+            padding: 10px 30px; border: none; background: white; border-radius: 25px;
+            font-weight: 700; cursor: pointer; transition: 0.3s; color: #555;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .tab-btn.active { background: var(--secondary); color: white; transform: translateY(-2px); }
+
+        /* FLASHCARD MODE */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .card {
+            background: transparent; height: 200px; perspective: 1000px; cursor: pointer;
+        }
+        .card-inner {
+            position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s;
+            transform-style: preserve-3d; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        
+        .front, .back {
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 12px; padding: 15px;
+        }
+        .front { background: white; color: var(--text); }
+        .back { background: var(--primary); color: white; transform: rotateY(180deg); }
+
+        .word { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        .ipa { font-size: 14px; color: #777; font-family: 'Arial', sans-serif; margin-bottom: 5px; font-style: italic; }
+        .type { font-size: 12px; background: #eee; padding: 3px 8px; border-radius: 4px; color: #555; font-weight: bold; }
+        .meaning { font-size: 17px; font-weight: 700; line-height: 1.4; }
+
+        /* QUIZ MODE */
+        .quiz-box { 
+            background: white; padding: 30px; border-radius: 15px; text-align: center; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; 
+        }
+        .q-word { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--primary); }
+        .options { display: grid; gap: 12px; }
+        .opt { 
+            padding: 15px; border: 2px solid #eee; background: #fafafa; border-radius: 10px; 
+            cursor: pointer; font-weight: 600; transition: 0.2s; font-size: 16px;
+        }
+        .opt:hover { border-color: var(--primary); background: #fff3e0; }
+        .opt.correct { background: #c8e6c9; border-color: #388e3c; color: #1b5e20; }
+        .opt.wrong { background: #ffcdd2; border-color: #d32f2f; color: #b71c1c; opacity: 0.7; }
+        .score-board { font-size: 18px; font-weight: 800; color: var(--secondary); margin-bottom: 15px; }
+        .next-btn { 
+            margin-top: 20px; padding: 12px 30px; background: var(--primary); color: white; 
+            border: none; border-radius: 25px; cursor: pointer; display: none; font-size: 16px; font-weight: bold;
+        }
+
+        .hidden { display: none; }
+        
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+            .card { height: 180px; }
+            .word { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📘 Global Success 9 Glossary</h1>
+    <p>Tổng hợp từ vựng Units 1 - 12 (Full Data)</p>
+</header>
+
+<div class="controls">
+    <select id="unitSelect" onchange="loadUnit()">
+        </select>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchMode('learn')">📖 Học Từ</button>
+        <button class="tab-btn" onclick="switchMode('quiz')">🎮 Trắc Nghiệm</button>
+    </div>
+
+    <div id="learnArea" class="grid"></div>
+
+    <div id="quizArea" class="hidden">
+        <div class="quiz-box">
+            <div class="score-board">Điểm: <span id="scoreVal">0</span></div>
+            <div class="q-word" id="qWord">...</div>
+            <div class="options" id="qOptions"></div>
+            <div id="feedback" style="margin-top:15px; font-weight:bold; height:20px;"></div>
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Tiếp theo ➜</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE (FULL 4 IMAGES - GS9) ---
+    const db = {
+        "u1": { title: "Unit 1: Local Community", words: [
+            {w:"artisan", p:"/ˌɑːtɪˈzæn/", t:"n", m:"thợ làm nghề thủ công"},
+            {w:"community", p:"/kəˈmjuːnəti/", t:"n", m:"cộng đồng"},
+            {w:"community helper", p:"/kəˈmjuːnəti ˈhelpə/", t:"n", m:"người phục vụ cộng đồng"},
+            {w:"craft village", p:"/krɑːft ˈvɪlɪdʒ/", t:"n", m:"làng nghề thủ công"},
+            {w:"cut down on", p:"/kʌt daʊn ɒn/", t:"v", m:"cắt giảm"},
+            {w:"delivery person", p:"/dɪˈlɪvəri ˈpɜːsn/", t:"n", m:"nhân viên giao hàng"},
+            {w:"electrician", p:"/ɪˌlekˈtrɪʃn/", t:"n", m:"thợ điện"},
+            {w:"facilities", p:"/fəˈsɪlətiz/", t:"n, plural", m:"cơ sở vật chất"},
+            {w:"firefighter", p:"/ˈfaɪəfaɪtə/", t:"n", m:"lính cứu hỏa"},
+            {w:"fragrance", p:"/ˈfreɪgrəns/", t:"n", m:"hương thơm"},
+            {w:"function", p:"/ˈfʌŋkʃn/", t:"n", m:"chức năng"},
+            {w:"garbage collector", p:"/ˈgɑːbɪdʒ kəlektə/", t:"n", m:"nhân viên dọn vệ sinh"},
+            {w:"get on with", p:"/get ɒn wɪð/", t:"v", m:"có quan hệ tốt với"},
+            {w:"hand down", p:"/hænd daʊn/", t:"v", m:"truyền lại"},
+            {w:"handicraft", p:"/ˈhændikrɑːft/", t:"n", m:"sản phẩm thủ công"},
+            {w:"look around", p:"/lʊk əˈraʊnd/", t:"v", m:"ngắm nghía xung quanh"},
+            {w:"original", p:"/əˈrɪdʒənl/", t:"adj", m:"nguyên bản"},
+            {w:"pass down", p:"/pɑːs daʊn/", t:"v", m:"truyền lại"},
+            {w:"police officer", p:"/pəˈliːs ɒfɪsə/", t:"n", m:"công an"},
+            {w:"pottery", p:"/ˈpɒtəri/", t:"n", m:"đồ gốm"},
+            {w:"preserve", p:"/prɪˈzɜːv/", t:"v", m:"bảo tồn"},
+            {w:"run out of", p:"/rʌn aʊt əv/", t:"v", m:"hết, cạn kiệt"},
+            {w:"speciality", p:"/ˌspeʃiˈæləti/", t:"n", m:"đặc sản"},
+            {w:"suburb", p:"/ˈsʌbɜːb/", t:"n", m:"vùng ngoại ô"},
+            {w:"tourist attraction", p:"/ˈtʊərɪst əˈtrækʃn/", t:"n", m:"điểm du lịch"}
+        ]},
+        "u2": { title: "Unit 2: City Life", words: [
+            {w:"bustling", p:"/ˈbʌslɪŋ/", t:"adj", m:"hối hả, nhộn nhịp"},
+            {w:"carry out", p:"/ˈkæri aʊt/", t:"v", m:"tiến hành (nghiên cứu...)"},
+            {w:"come down with", p:"/kʌm daʊn wɪð/", t:"v", m:"bị ốm (vì bệnh gì)"},
+            {w:"concrete jungle", p:"/ˌkɒŋkriːt ˈdʒʌŋgl/", t:"n", m:"rừng bê tông (khu nhiều nhà cao tầng)"},
+            {w:"congested", p:"/kənˈdʒestɪd/", t:"adj", m:"tắc nghẽn (giao thông)"},
+            {w:"construction site", p:"/kənˈstrʌkʃn saɪt/", t:"n", m:"công trường xây dựng"},
+            {w:"downtown", p:"/ˌdaʊnˈtaʊn/", t:"n", m:"khu trung tâm thành phố"},
+            {w:"get around", p:"/get əˈraʊnd/", t:"v", m:"đi xung quanh, di chuyển"},
+            {w:"hang out with", p:"/hæŋ aʊt wɪð/", t:"v", m:"đi chơi (cùng ai)"},
+            {w:"hygiene", p:"/ˈhaɪdʒiːn/", t:"n", m:"vệ sinh"},
+            {w:"itchy", p:"/ˈɪtʃi/", t:"adj", m:"ngứa, gây ngứa"},
+            {w:"leftover", p:"/ˈleftəʊvə/", t:"n", m:"thức ăn thừa"},
+            {w:"liveable", p:"/ˈlɪvəbl/", t:"adj", m:"(nơi) đáng sống"},
+            {w:"metro", p:"/ˈmetrəʊ/", t:"n", m:"hệ thống tàu điện ngầm"},
+            {w:"pricey", p:"/ˈpraɪsi/", t:"adj", m:"đắt đỏ"},
+            {w:"process", p:"/ˈprəʊses/", t:"v", m:"xử lý"},
+            {w:"public amenities", p:"/ˈpʌblɪk əˈmiːnətiz/", t:"n", m:"những tiện ích công cộng"},
+            {w:"rush hour", p:"/ˈrʌʃ aʊə/", t:"n", m:"giờ cao điểm"},
+            {w:"sky train", p:"/skaɪ treɪn/", t:"n", m:"tàu điện trên không"},
+            {w:"tram", p:"/træm/", t:"n", m:"xe điện"},
+            {w:"underground", p:"/ˌʌndəˈgraʊnd/", t:"n", m:"(hệ thống) tàu điện ngầm"}
+        ]},
+        "u3": { title: "Unit 3: Healthy Living for Teens", words: [
+            {w:"accomplish", p:"/əˈkʌmplɪʃ/", t:"v", m:"hoàn thành, đạt được"},
+            {w:"additional", p:"/əˈdɪʃənl/", t:"adj", m:"thêm, thêm vào"},
+            {w:"anxiety", p:"/æŋˈzaɪəti/", t:"n", m:"nỗi lo, mối băn khoăn"},
+            {w:"appropriately", p:"/əˈprəʊpriətli/", t:"adv", m:"phù hợp, thích đáng"},
+            {w:"assignment", p:"/əˈsaɪnmənt/", t:"n", m:"nhiệm vụ, bài tập"},
+            {w:"counsellor", p:"/ˈkaʊnsələ/", t:"n", m:"cố vấn, người tư vấn"},
+            {w:"deadline", p:"/ˈdedlaɪn/", t:"n", m:"hạn chót"},
+            {w:"delay", p:"/dɪˈleɪ/", t:"v", m:"trì hoãn, làm chậm trễ"},
+            {w:"distraction", p:"/dɪˈstrækʃn/", t:"n", m:"điều làm sao lãng"},
+            {w:"due date", p:"/ˈdjuː deɪt/", t:"n", m:"hạn chót"},
+            {w:"fattening", p:"/ˈfætnɪŋ/", t:"adj", m:"gây béo phì"},
+            {w:"mental", p:"/ˈmentl/", t:"adj", m:"(thuộc) tinh thần, trí tuệ"},
+            {w:"minimise", p:"/ˈmɪnɪmaɪz/", t:"v", m:"giảm đến mức tối thiểu"},
+            {w:"mood", p:"/muːd/", t:"n", m:"tâm trạng"},
+            {w:"optimistic", p:"/ˌɒptɪˈmɪstɪk/", t:"adj", m:"lạc quan"},
+            {w:"physical", p:"/ˈfɪzɪkl/", t:"adj", m:"(thuộc) thể chất, cơ thể"},
+            {w:"priority", p:"/praɪˈɒrəti/", t:"n", m:"sự ưu tiên"},
+            {w:"stressed out", p:"/strest aʊt/", t:"adj", m:"căng thẳng"},
+            {w:"well-balanced", p:"/ˌwel ˈbælənst/", t:"adj", m:"cân bằng, đúng mực"}
+        ]},
+        "u4": { title: "Unit 4: Remembering the Past", words: [
+            {w:"ancient", p:"/ˈeɪnʃənt/", t:"adj", m:"cổ đại, lâu đời"},
+            {w:"anniversary", p:"/ˌænɪˈvɜːsəri/", t:"n", m:"ngày kỉ niệm"},
+            {w:"barefoot", p:"/ˈbeəfʊt/", t:"adj, adv", m:"chân trần"},
+            {w:"basic", p:"/ˈbeɪsɪk/", t:"adj", m:"cơ bản"},
+            {w:"castle", p:"/ˈkɑːsl/", t:"n", m:"lâu đài"},
+            {w:"communal", p:"/kəˈmjuːnl/", t:"adj", m:"dùng chung, công cộng"},
+            {w:"complex", p:"/ˈkɒmpleks/", t:"n", m:"khu phức hợp, quần thể"},
+            {w:"deep-rooted", p:"/ˌdiːp ˈruːtɪd/", t:"adj", m:"lâu đời, ăn sâu bén rễ"},
+            {w:"face to face", p:"/feɪs tə ˈfeɪs/", t:"adv", m:"trực tiếp, trực diện"},
+            {w:"fish and chips", p:"/fɪʃ ən ˈtʃɪps/", t:"n", m:"món cá và khoai tây rán"},
+            {w:"found", p:"/faʊnd/", t:"v", m:"thành lập"},
+            {w:"generation", p:"/ˌdʒenəˈreɪʃn/", t:"n", m:"thế hệ"},
+            {w:"monument", p:"/ˈmɒnjumənt/", t:"n", m:"tượng đài"},
+            {w:"observe", p:"/əbˈzɜːv/", t:"v", m:"duy trì, tuân theo"},
+            {w:"occupied", p:"/ˈɒkjupaɪd/", t:"adj", m:"có người ở"},
+            {w:"occupy", p:"/ˈɒkjupaɪ/", t:"v", m:"chiếm giữ"},
+            {w:"promote", p:"/prəˈməʊt/", t:"v", m:"thúc đẩy"},
+            {w:"recognise", p:"/ˈrekəgnaɪz/", t:"v", m:"công nhận"},
+            {w:"religious", p:"/rɪˈlɪdʒəs/", t:"adj", m:"(thuộc) tôn giáo"},
+            {w:"structure", p:"/ˈstrʌktʃə/", t:"n", m:"cấu trúc"},
+            {w:"takeaway", p:"/ˈteɪkəweɪ/", t:"n", m:"đồ ăn bán sẵn (mang về)"}
+        ]},
+        "u5": { title: "Unit 5: Our Experiences", words: [
+            {w:"amazing", p:"/əˈmeɪzɪŋ/", t:"adj", m:"ngạc nhiên, đáng ngưỡng mộ"},
+            {w:"army-like", p:"/ˈɑːmi laɪk/", t:"adj", m:"như trong quân đội"},
+            {w:"brilliant", p:"/ˈbrɪliənt/", t:"adj", m:"rất ấn tượng, thông minh"},
+            {w:"campus", p:"/ˈkæmpəs/", t:"n", m:"khuôn viên (trường học)"},
+            {w:"confidence", p:"/ˈkɒnfɪdəns/", t:"n", m:"niềm tin, sự tin tưởng"},
+            {w:"coral reef", p:"/ˈkɒrəl riːf/", t:"n", m:"rặng san hô"},
+            {w:"eco-tour", p:"/ˈiːkəʊ tʊə/", t:"n", m:"du lịch sinh thái"},
+            {w:"embarrassing", p:"/ɪmˈbærəsɪŋ/", t:"adj", m:"làm ai bối rối, ngượng"},
+            {w:"exhilarating", p:"/ɪgˈzɪləreɪtɪŋ/", t:"adj", m:"đầy phấn khích"},
+            {w:"experience", p:"/ɪkˈspɪəriəns/", t:"n", m:"sự trải nghiệm"},
+            {w:"explore", p:"/ɪkˈsplɔː/", t:"v", m:"khám phá, tìm tòi"},
+            {w:"fauna", p:"/ˈfɔːnə/", t:"n", m:"hệ động vật"},
+            {w:"flora", p:"/ˈflɔːrə/", t:"n", m:"hệ thực vật"},
+            {w:"lack", p:"/læk/", t:"v", m:"thiếu"},
+            {w:"learn by rote", p:"/lɜːn baɪ rəʊt/", t:"v", m:"học vẹt"},
+            {w:"memorable", p:"/ˈmemərəbl/", t:"adj", m:"đáng nhớ"},
+            {w:"performance", p:"/pəˈfɔːməns/", t:"n", m:"buổi biểu diễn"},
+            {w:"seabed", p:"/ˈsiːbed/", t:"n", m:"đáy biển"},
+            {w:"snorkelling", p:"/ˈsnɔːkəlɪŋ/", t:"n", m:"môn lặn có ống thở"},
+            {w:"theme", p:"/θiːm/", t:"n", m:"chủ đề, đề tài"},
+            {w:"thrilling", p:"/ˈθrɪlɪŋ/", t:"adj", m:"rất phấn khích, vui"},
+            {w:"touching", p:"/ˈtʌtʃɪŋ/", t:"adj", m:"gây xúc động"},
+            {w:"tribal dance", p:"/ˈtraɪbl dɑːns/", t:"n", m:"điệu múa của bộ tộc"},
+            {w:"unpleasant", p:"/ʌnˈpleznt/", t:"adj", m:"không thoải mái, khó chịu"}
+        ]},
+        "u6": { title: "Unit 6: Viet Nam: Then and Now", words: [
+            {w:"democratic", p:"/ˌdeməˈkrætɪk/", t:"adj", m:"thuộc dân chủ"},
+            {w:"dependent", p:"/dɪˈpendənt/", t:"adj", m:"lệ thuộc vào"},
+            {w:"dye", p:"/daɪ/", t:"v", m:"nhuộm"},
+            {w:"extended", p:"/ɪkˈstendɪd/", t:"adj", m:"(gia đình) nhiều thế hệ"},
+            {w:"family-oriented", p:"/ˈfæməli ˈɔːrientɪd/", t:"adj", m:"hướng về gia đình"},
+            {w:"gap", p:"/gæp/", t:"n", m:"khoảng cách"},
+            {w:"generation", p:"/ˌdʒenəˈreɪʃn/", t:"n", m:"thế hệ"},
+            {w:"household", p:"/ˈhaʊshəʊld/", t:"n", m:"hộ gia đình"},
+            {w:"lifestyle", p:"/ˈlaɪfstaɪl/", t:"n", m:"lối sống"},
+            {w:"memorise", p:"/ˈmeməraɪz/", t:"v", m:"ghi nhớ"},
+            {w:"monk", p:"/mʌŋk/", t:"n", m:"nhà sư"},
+            {w:"nuclear", p:"/ˈnjuːkliə/", t:"adj", m:"(gia đình) hạt nhân/2 thế hệ"},
+            {w:"opportunity", p:"/ˌɒpəˈtjuːnəti/", t:"n", m:"cơ hội"},
+            {w:"popularity", p:"/ˌpɒpjuˈlærəti/", t:"n", m:"sự phổ biến"},
+            {w:"privacy", p:"/ˈprɪvəsi/", t:"n", m:"sự riêng tư"},
+            {w:"promise", p:"/ˈprɒmɪs/", t:"n, v", m:"lời hứa, hứa"},
+            {w:"pursue", p:"/pəˈsjuː/", t:"v", m:"theo đuổi"},
+            {w:"replace", p:"/rɪˈpleɪs/", t:"v", m:"thay thế"},
+            {w:"take notes", p:"/teɪk nəʊts/", t:"v", m:"ghi chép"},
+            {w:"trend", p:"/trend/", t:"n", m:"xu hướng"},
+            {w:"western", p:"/ˈwestən/", t:"adj", m:"thuộc phương Tây"}
+        ]},
+        "u7": { title: "Unit 7: Natural Wonders", words: [
+            {w:"access", p:"/ˈækses/", t:"n", m:"tiếp cận, đến được"},
+            {w:"annual", p:"/ˈænjuəl/", t:"adj", m:"(xảy ra) hàng năm"},
+            {w:"biodiversity", p:"/ˌbaɪəʊdaɪˈvɜːsəti/", t:"n", m:"sự đa dạng sinh học"},
+            {w:"coral", p:"/ˈkɒrəl/", t:"n, adj", m:"san hô"},
+            {w:"crazy (about)", p:"/ˈkreɪzi/", t:"adj", m:"thích mê"},
+            {w:"destination", p:"/ˌdestɪˈneɪʃn/", t:"n", m:"điểm đến"},
+            {w:"ecosystem", p:"/ˈiːkəʊsɪstəm/", t:"n", m:"hệ sinh thái"},
+            {w:"feature", p:"/ˈfiːtʃə/", t:"n", m:"đặc điểm"},
+            {w:"locate", p:"/ləʊˈkeɪt/", t:"v", m:"định vị, đặt ở"},
+            {w:"location", p:"/ləʊˈkeɪʃn/", t:"n", m:"địa điểm, nơi chốn"},
+            {w:"majestic", p:"/məˈdʒestɪk/", t:"adj", m:"uy nghi, tráng lệ"},
+            {w:"occur", p:"/əˈkɜː/", t:"v", m:"xảy ra"},
+            {w:"paradise", p:"/ˈpærədaɪs/", t:"n", m:"thiên đường"},
+            {w:"peak", p:"/piːk/", t:"n", m:"đỉnh (núi)"},
+            {w:"permission", p:"/pəˈmɪʃn/", t:"n", m:"sự cho phép"},
+            {w:"permit", p:"/pəˈmɪt/", t:"v", m:"cho phép"},
+            {w:"possess", p:"/pəˈzes/", t:"v", m:"có, sở hữu"},
+            {w:"support", p:"/səˈpɔːt/", t:"v", m:"ủng hộ, giúp đỡ"},
+            {w:"sustainable", p:"/səˈsteɪnəbl/", t:"adj", m:"bền vững"},
+            {w:"travel destination", p:"/ˈtrævl destɪˈneɪʃn/", t:"n", m:"điểm đến du lịch"},
+            {w:"urgent", p:"/ˈɜːdʒənt/", t:"adj", m:"gấp, cấp bách"}
+        ]},
+        "u8": { title: "Unit 8: Tourism", words: [
+            {w:"agency", p:"/ˈeɪdʒənsi/", t:"n", m:"hãng (du lịch)"},
+            {w:"agent", p:"/ˈeɪdʒənt/", t:"n", m:"nhân viên hãng"},
+            {w:"brochure", p:"/ˈbrəʊʃə/", t:"n", m:"quyển quảng cáo"},
+            {w:"domestic tourism", p:"/dəˈmestɪk ˈtʊərɪzəm/", t:"n", m:"du lịch trong nước"},
+            {w:"estimate", p:"/ˈestɪmeɪt/", t:"v", m:"tính toán, ước tính"},
+            {w:"fixed", p:"/fɪkst/", t:"adj", m:"cố định"},
+            {w:"food tourism", p:"/fuːd ˈtʊərɪzəm/", t:"n", m:"du lịch ẩm thực"},
+            {w:"graveyard", p:"/ˈgreɪvjɑːd/", t:"n", m:"nghĩa địa"},
+            {w:"holidaymaker", p:"/ˈhɒlədeɪmeɪkə/", t:"n", m:"người đi nghỉ"},
+            {w:"homestay", p:"/ˈhəʊmsteɪ/", t:"n", m:"nhà trọ (du lịch)"},
+            {w:"hop-on hop-off", p:"/hɒp ɒn hɒp ɒf/", t:"n", m:"xe buýt du lịch"},
+            {w:"hunt", p:"/hʌnt/", t:"v", m:"săn tìm"},
+            {w:"itinerary", p:"/aɪˈtɪnərəri/", t:"n", m:"lịch trình"},
+            {w:"loft", p:"/lɒft/", t:"n", m:"gác mái"},
+            {w:"low season", p:"/ləʊ ˈsiːzn/", t:"n", m:"mùa vắng khách"},
+            {w:"online app", p:"/ˌɒnˈlaɪn æp/", t:"n", m:"ứng dụng trên mạng"},
+            {w:"package holiday", p:"/ˈpækɪdʒ ˈhɒlədeɪ/", t:"n", m:"kì nghỉ trọn gói"},
+            {w:"ruinous", p:"/ˈruːɪnəs/", t:"adj", m:"đổ nát"},
+            {w:"self-guided", p:"/self ˈgaɪdɪd/", t:"adj", m:"tự tổ chức"},
+            {w:"shopping tourism", p:"/ˈʃɒpɪŋ ˈtʊərɪzəm/", t:"n", m:"du lịch mua sắm"},
+            {w:"smooth", p:"/smuːð/", t:"adj", m:"trôi chảy"},
+            {w:"wander", p:"/ˈwɒndə/", t:"v", m:"dạo chơi, lang thang"},
+            {w:"world-famous", p:"/ˌwɜːld ˈfeɪməs/", t:"adj", m:"nổi tiếng thế giới"},
+            {w:"work out", p:"/wɜːk aʊt/", t:"v", m:"lên kế hoạch"}
+        ]},
+        "u9": { title: "Unit 9: English in the World", words: [
+            {w:"bilingual", p:"/ˌbaɪˈlɪŋgwəl/", t:"adj", m:"sử dụng hai ngôn ngữ"},
+            {w:"borrowed word", p:"/ˈbɒrəʊd wɜːd/", t:"n", m:"từ mượn"},
+            {w:"concentric", p:"/kənˈsentrɪk/", t:"adj", m:"đồng tâm"},
+            {w:"consist", p:"/kənˈsɪst/", t:"v", m:"bao gồm"},
+            {w:"copy", p:"/ˈkɒpi/", t:"v", m:"chép lại"},
+            {w:"establish", p:"/ɪˈstæblɪʃ/", t:"v", m:"thành lập"},
+            {w:"exchange student", p:"/ɪksˈtʃeɪndʒ stjuːdnt/", t:"n", m:"học sinh trao đổi"},
+            {w:"Expanding Circle", p:"/ɪkˈspændɪŋ sɜːkl/", t:"n", m:"vòng tròn mở rộng"},
+            {w:"first language", p:"/fɜːst ˈlæŋgwɪdʒ/", t:"n", m:"ngôn ngữ thứ nhất"},
+            {w:"fluent", p:"/ˈfluːənt/", t:"adj", m:"trôi chảy"},
+            {w:"go over", p:"/gəʊ ˈəʊvə/", t:"v", m:"ôn tập lại"},
+            {w:"immigrant", p:"/ˈɪmɪgrənt/", t:"n", m:"người nhập cư"},
+            {w:"Inner Circle", p:"/ˌɪnə ˈsɜːkl/", t:"n", m:"vòng tròn bên trong"},
+            {w:"look up", p:"/lʊk ʌp/", t:"v", m:"tra (từ điển)"},
+            {w:"mean", p:"/miːn/", t:"v", m:"nghĩa là"},
+            {w:"model", p:"/ˈmɒdl/", t:"n", m:"mô hình"},
+            {w:"official language", p:"/əˌfɪʃl ˈlæŋgwɪdʒ/", t:"n", m:"ngôn ngữ chính thức"},
+            {w:"Outer Circle", p:"/ˌaʊtə ˈsɜːkl/", t:"n", m:"vòng tròn bên ngoài"},
+            {w:"pick up", p:"/pɪk ʌp/", t:"v", m:"học lỏm"},
+            {w:"propose", p:"/prəˈpəʊz/", t:"v", m:"đề xuất"},
+            {w:"second language", p:"/ˌsekənd ˈlæŋgwɪdʒ/", t:"n", m:"ngôn ngữ thứ hai"},
+            {w:"standard", p:"/ˈstændəd/", t:"n", m:"chuẩn mực"},
+            {w:"translate", p:"/trænzˈleɪt/", t:"v", m:"dịch"},
+            {w:"variety", p:"/vəˈraɪəti/", t:"n", m:"biến thể"},
+            {w:"vocabulary", p:"/vəˈkæbjələri/", t:"n", m:"từ vựng"}
+        ]},
+        "u10": { title: "Unit 10: Planet Earth", words: [
+            {w:"affect", p:"/əˈfekt/", t:"v", m:"gây ảnh hưởng"},
+            {w:"appreciate", p:"/əˈpriːʃieɪt/", t:"v", m:"đánh giá cao"},
+            {w:"climate change", p:"/ˈklaɪmət tʃeɪndʒ/", t:"n", m:"biến đổi khí hậu"},
+            {w:"droppings", p:"/ˈdrɒpɪŋz/", t:"n", m:"phân (động vật)"},
+            {w:"essential", p:"/ɪˈsenʃl/", t:"adj", m:"vô cùng quan trọng"},
+            {w:"ecological balance", p:"/ˌiːkəˈlɒdʒɪkl ˈbæləns/", t:"n", m:"cân bằng sinh thái"},
+            {w:"fascinating", p:"/ˈfæsɪneɪtɪŋ/", t:"adj", m:"rất thú vị và hấp dẫn"},
+            {w:"fertilizer", p:"/ˈfɜːtəlaɪzə/", t:"n", m:"phân bón"},
+            {w:"food chain", p:"/fuːd tʃeɪn/", t:"n", m:"chuỗi thức ăn"},
+            {w:"grassland", p:"/ˈgrɑːslænd/", t:"n", m:"khu vực đồng cỏ"},
+            {w:"habitat", p:"/ˈhæbɪtæt/", t:"n", m:"môi trường sống"},
+            {w:"harm", p:"/hɑːm/", t:"v", m:"làm hại"},
+            {w:"landform", p:"/ˈlændfɔːm/", t:"n", m:"dạng địa hình"},
+            {w:"nature reserve", p:"/ˈneɪtʃə rɪzɜːv/", t:"n", m:"khu bảo tồn thiên nhiên"},
+            {w:"observe", p:"/əbˈzɜːv/", t:"v", m:"quan sát, chú ý"},
+            {w:"orbit", p:"/ˈɔːbɪt/", t:"v", m:"quay quanh quỹ đạo"},
+            {w:"outer space", p:"/ˌaʊtə ˈspeɪs/", t:"n", m:"ngoài vũ trụ"},
+            {w:"pesticide", p:"/ˈpestɪsaɪd/", t:"n", m:"thuốc diệt cỏ"},
+            {w:"pole", p:"/pəʊl/", t:"n", m:"cực (bắc / nam)"},
+            {w:"preserve", p:"/prɪˈzɜːv/", t:"v", m:"bảo tồn"},
+            {w:"threat", p:"/θret/", t:"n", m:"nối đe dọa"},
+            {w:"vital", p:"/ˈvaɪtl/", t:"adj", m:"quan trọng mức sống còn"}
+        ]},
+        "u11": { title: "Unit 11: Electronic Devices", words: [
+            {w:"3D printer", p:"/ˌθriː diː ˈprɪntə/", t:"n", m:"máy in 3D"},
+            {w:"aluminium", p:"/ˌæljəˈmɪniəm/", t:"n", m:"nhôm"},
+            {w:"camcorder", p:"/ˈkæmkɔːdə/", t:"n", m:"máy quay phim xách tay"},
+            {w:"cardboard", p:"/ˈkɑːdbɔːd/", t:"n", m:"bìa cứng, các tông"},
+            {w:"copper", p:"/ˈkɒpə/", t:"n", m:"đồng"},
+            {w:"e-reader", p:"/ˈiː riːdə/", t:"n", m:"máy đọc sách điện tử"},
+            {w:"leaflet", p:"/ˈliːflət/", t:"n", m:"tờ rơi (để quảng cáo)"},
+            {w:"plastic", p:"/ˈplæstɪk/", t:"n", m:"chất dẻo, nhựa"},
+            {w:"portable", p:"/ˈpɔːtəbl/", t:"adj", m:"có thể mang theo, xách tay"},
+            {w:"portable music player", p:"/ˈpɔːtəbl ˈmjuːzɪk pleɪə/", t:"n", m:"máy nghe nhạc cầm tay"},
+            {w:"robotic vacuum cleaner", p:"/rəʊˈbɒtɪk ˈvækjuːm kliːnə/", t:"n", m:"robot hút bụi tự động"},
+            {w:"rubber", p:"/ˈrʌbə/", t:"n", m:"cao su"},
+            {w:"self-portrait", p:"/ˌself ˈpɔːtreɪt/", t:"n", m:"ảnh chân dung tự chụp"},
+            {w:"smartwatch", p:"/ˈsmɑːtwɒtʃ/", t:"n", m:"đồng hồ thông minh"},
+            {w:"steel", p:"/stiːl/", t:"n", m:"thép"},
+            {w:"stylish", p:"/ˈstaɪlɪʃ/", t:"adj", m:"hợp thời trang"},
+            {w:"suck", p:"/sʌk/", t:"v", m:"hút"},
+            {w:"touchscreen", p:"/ˈtʌtʃskriːn/", t:"n", m:"màn hình cảm ứng"},
+            {w:"virtual", p:"/ˈvɜːtʃuəl/", t:"adj", m:"ảo"},
+            {w:"window shade", p:"/ˈwɪndəʊ ʃeɪd/", t:"n", m:"mành cửa sổ"},
+            {w:"wireless", p:"/ˈwaɪələs/", t:"adj", m:"không dây, vô tuyến"}
+        ]},
+        "u12": { title: "Unit 12: Career Paths", words: [
+            {w:"agriculture engineering", p:"/ˈægrɪkʌltʃə endʒɪˈnɪərɪŋ/", t:"n", m:"ngành kĩ sư nông nghiệp"},
+            {w:"assembly worker", p:"/əˈsembli wɜːkə/", t:"n", m:"công nhân dây chuyền"},
+            {w:"bartender", p:"/ˈbɑːtendə/", t:"n", m:"thợ pha chế đồ uống"},
+            {w:"career", p:"/kəˈrɪə/", t:"n", m:"sự nghiệp"},
+            {w:"cashier", p:"/kæˈʃɪə/", t:"n", m:"thu ngân"},
+            {w:"decisive", p:"/dɪˈsaɪsɪv/", t:"adj", m:"quyết đoán"},
+            {w:"demanding", p:"/dɪˈmɑːndɪŋ/", t:"adj", m:"khắt khe, phức tạp"},
+            {w:"fabric", p:"/ˈfæbrɪk/", t:"n", m:"vải vóc"},
+            {w:"garment worker", p:"/ˈgɑːmənt wɜːkə/", t:"n", m:"công nhân may"},
+            {w:"hand-eye coordination", p:"/hænd aɪ kəʊˌɔːdɪˈneɪʃn/", t:"n", m:"sự phối hợp tay mắt"},
+            {w:"hands-on", p:"/hændz ˈɒn/", t:"adj", m:"có tính thực tiễn"},
+            {w:"inquiring", p:"/ɪnˈkwaɪərɪŋ/", t:"adj", m:"ham học hỏi"},
+            {w:"knowledgeable", p:"/ˈnɒlɪdʒəbl/", t:"adj", m:"am hiểu, thông thạo"},
+            {w:"mechanic", p:"/məˈkænɪk/", t:"n", m:"thợ sửa chữa"},
+            {w:"orientation", p:"/ˌɔːriənˈteɪʃn/", t:"n", m:"sự định hướng"},
+            {w:"repetitive", p:"/rɪˈpetətɪv/", t:"adj", m:"lặp đi lặp lại"},
+            {w:"rewarding", p:"/rɪˈwɔːdɪŋ/", t:"adj", m:"bổ ích, xứng đáng"},
+            {w:"sew", p:"/səʊ/", t:"v", m:"khâu, may vá"},
+            {w:"software engineer", p:"/ˈsɒftweə endʒɪˈnɪə/", t:"n", m:"kĩ sư phần mềm"},
+            {w:"surgeon", p:"/ˈsɜːdʒən/", t:"n", m:"bác sĩ phẫu thuật"},
+            {w:"vocational", p:"/vəʊˈkeɪʃənl/", t:"adj", m:"thuộc về nghề nghiệp"},
+            {w:"well-paid", p:"/ˌwel ˈpeɪd/", t:"adj", m:"được trả lương cao"}
+        ]}
+    };
+
+    // --- GAME LOGIC ---
+    let currentUnit = "u1";
+    let score = 0;
+    let quizData = [];
+    let qIndex = 0;
+
+    window.onload = () => {
+        initSelect();
+        loadUnit();
+    };
+
+    function initSelect() {
+        const sel = document.getElementById('unitSelect');
+        sel.innerHTML = "";
+        for (const [key, val] of Object.entries(db)) {
+            let opt = document.createElement("option");
+            opt.value = key;
+            opt.text = val.title;
+            sel.appendChild(opt);
+        }
+    }
+
+    function loadUnit() {
+        currentUnit = document.getElementById('unitSelect').value;
+        score = 0;
+        document.getElementById('scoreVal').innerText = score;
+        switchMode('learn');
+        renderFlashcards();
+    }
+
+    function switchMode(mode) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        if (mode === 'learn') {
+            document.getElementById('learnArea').classList.remove('hidden');
+            document.getElementById('quizArea').classList.add('hidden');
+        } else {
+            document.getElementById('learnArea').classList.add('hidden');
+            document.getElementById('quizArea').classList.remove('hidden');
+            startQuiz();
+        }
+    }
+
+    // FLASHCARD RENDER
+    function renderFlashcards() {
+        const container = document.getElementById('learnArea');
+        container.innerHTML = "";
+        const words = db[currentUnit].words;
+        
+        words.forEach(item => {
+            let card = document.createElement('div');
+            card.className = "card";
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="front">
+                        <div class="word">${item.w}</div>
+                        <div class="ipa">${item.p}</div>
+                        <div class="type">${item.t}</div>
+                        <div style="font-size:12px; margin-top:15px; color:#bbb;">(Chạm để lật)</div>
+                    </div>
+                    <div class="back">
+                        <div class="meaning">${item.m}</div>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => card.classList.toggle('flipped');
+            container.appendChild(card);
+        });
+    }
+
+    // QUIZ LOGIC
+    function startQuiz() {
+        qIndex = 0;
+        score = 0;
+        document.getElementById('scoreVal').innerText = "0";
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('feedback').innerText = "";
+        
+        // Shuffle current unit words
+        quizData = [...db[currentUnit].words].sort(() => 0.5 - Math.random());
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (qIndex >= quizData.length) {
+            document.querySelector('.quiz-box').innerHTML = `
+                <h2 style="color:var(--primary)">🏆 Hoàn thành!</h2>
+                <p>Bạn đạt <b>${score} / ${quizData.length * 10}</b> điểm</p>
+                <button class="next-btn" style="display:inline-block" onclick="location.reload()">Chọn bài khác</button>
+            `;
+            return;
+        }
+
+        const item = quizData[qIndex];
+        document.getElementById('qWord').innerText = item.w;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('nextBtn').style.display = 'none';
+
+        // Correct answer
+        const correct = item.m;
+        let options = [correct];
+        
+        // Distractors (wrong answers)
+        let otherWords = db[currentUnit].words.filter(w => w.w !== item.w);
+        // Fallback if unit has few words
+        if (otherWords.length < 3) otherWords = otherWords.concat(db["u1"].words);
+        
+        let wrongs = otherWords.sort(() => 0.5 - Math.random()).slice(0, 3);
+        wrongs.forEach(w => options.push(w.m));
+        
+        // Shuffle options
+        options.sort(() => 0.5 - Math.random());
+
+        const optContainer = document.getElementById('qOptions');
+        optContainer.innerHTML = "";
+        options.forEach(opt => {
+            let btn = document.createElement('div');
+            btn.className = 'opt';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, correct);
+            optContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const allOpts = document.querySelectorAll('.opt');
+        allOpts.forEach(o => o.style.pointerEvents = 'none'); // Disable clicks
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            document.getElementById('feedback').innerText = "Chính xác! 🎉";
+            document.getElementById('feedback').style.color = "green";
+            score += 10;
+        } else {
+            btn.classList.add('wrong');
+            document.getElementById('feedback').innerText = `Sai rồi! Đáp án là: ${correct}`;
+            document.getElementById('feedback').style.color = "red";
+            // Highlight correct one
+            allOpts.forEach(o => {
+                if (o.innerText === correct) o.classList.add('correct');
+            });
+        }
+        document.getElementById('scoreVal').innerText = score;
+        document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        qIndex++;
+        showQuestion();
+    }
+
+</script>
+
+</body>
+</html>
